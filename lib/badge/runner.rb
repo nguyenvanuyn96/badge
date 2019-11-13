@@ -31,11 +31,13 @@ module Badge
         UI.message "Start adding badges...".green
 
         shield = nil
+        shield_note = nil
         begin
           timeout = Badge.shield_io_timeout
           timeout = options[:shield_io_timeout] if options[:shield_io_timeout]
           Timeout.timeout(timeout.to_i) do
             shield = load_shield(options[:shield], options[:shield_parameters]) if options[:shield]
+            shield_note = load_shield(options[:shield_note], options[:shield_note_parameters]) if options[:shield_note]
           end
         rescue Timeout::Error
           UI.error "Error loading image from shields.io timeout reached. Use --verbose for more info".red
@@ -77,7 +79,7 @@ module Badge
             icon_changed = true
           end
           if shield
-            result = add_shield(icon, result, shield, alpha_channel, options[:shield_gravity], options[:shield_no_resize], options[:shield_scale], options[:shield_geometry])
+            result = add_shield(icon, result, shield, shield_note, alpha_channel, options[:shield_gravity], options[:shield_note_gravity], options[:shield_no_resize], options[:shield_scale], options[:shield_geometry])
             icon_changed = true
           end
           if icon_changed
@@ -94,6 +96,8 @@ module Badge
         if shield
           File.delete(shield) if File.exist?(shield)
           File.delete("#{shield.path}.png") if File.exist?("#{shield.path}.png")
+          File.delete(shield_note) if File.exist?(shield_note)
+          File.delete("#{shield_note.path}.png") if File.exist?("#{shield_note.path}.png")
         end
 
       else
@@ -101,7 +105,7 @@ module Badge
       end
     end
 
-    def add_shield(icon, result, shield, alpha_channel, shield_gravity, shield_no_resize, shield_scale, shield_geometry)
+    def add_shield(icon, result, shield, shield_note, alpha_channel, shield_gravity, shield_note_gravity, shield_no_resize, shield_scale, shield_geometry)
       UI.message "'#{icon.path}'"
       UI.verbose "Adding shields.io image ontop of icon".blue
 
@@ -109,6 +113,7 @@ module Badge
 
       if @@rsvg_enabled
         new_path = "#{shield.path}.png"
+        
         begin
           if shield_no_resize
             `rsvg-convert #{shield.path} -z #{shield_scale} -o #{new_path}`
@@ -120,6 +125,25 @@ module Badge
           UI.verbose error if FastlaneCore::Globals.verbose?
         end
         new_shield = MiniMagick::Image.open(new_path)
+        
+        ==============shield note
+        new_note_path = nil
+        
+        if shield_note
+          new_note_path = "#{shield_note.path}.png"
+          
+          begin
+            if shield_no_resize
+              `rsvg-convert #{shield_note.path} -z #{shield_scale} -o #{new_note_path}`
+            else
+              `rsvg-convert #{shield_note.path} -w #{(icon.width * shield_scale).to_i} -a -o #{new_note_path}`
+            end
+          rescue Exception => error
+            UI.error "Other error occured. Use --verbose for more info".red
+            UI.verbose error if FastlaneCore::Globals.verbose?
+          end
+          new_shield_note = MiniMagick::Image.open(new_note_path)
+        end 
       else
         new_shield = MiniMagick::Image.open(shield.path)
         if icon.width > new_shield.width && !shield_no_resize
@@ -127,9 +151,18 @@ module Badge
         else
           new_shield.resize "#{icon.width}x#{icon.height}>"
         end
+        
+        if shield_note
+          new_shield_note = MiniMagick::Image.open(shield_note.path)
+          if icon.width > new_shield_note.width && !shield_no_resize
+            new_shield_note.resize "#{(icon.width * shield_scale).to_i}x#{icon.height}<"
+          else
+            new_shield_note.resize "#{icon.width}x#{icon.height}>"
+          end
+        end
       end
 
-      result = composite(result, new_shield, alpha_channel, shield_gravity || "north", shield_geometry)
+      result = composite(result, new_shield, new_shield_note, alpha_channel, shield_gravity || "north", , shield_note_gravity || "south", shield_geometry)
     end
 
     def load_shield(shield_string, shield_parameters)
@@ -147,7 +180,7 @@ module Badge
 
       File.open(file_name)
     end
-
+    
     def check_tools!
         if !`which rsvg-convert`.include?('rsvg-convert')
           UI.important("Install RSVG to get better results for shields on top of your icon")
@@ -190,12 +223,20 @@ module Badge
       result = composite(icon, badge, alpha_channel, badge_gravity || "SouthEast")
     end
 
-    def composite(image, overlay, alpha_channel, gravity, geometry = nil)
+    def composite(image, overlay, overlay_note, alpha_channel, gravity, gravity_note, geometry = nil)
       image.composite(overlay, 'png') do |c|
         c.compose "Over"
         c.alpha 'On' unless !alpha_channel
         c.gravity gravity
         c.geometry geometry if geometry
+      end
+      if overlay_note
+        image.composite(overlay_note, 'png') do |c|
+          c.compose "Over"
+          c.alpha 'On' unless !alpha_channel
+          c.gravity gravity_note
+          c.geometry geometry if geometry
+        end
       end
     end
   end
