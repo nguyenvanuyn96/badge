@@ -162,7 +162,7 @@ module Badge
         end
       end
 
-      result = composite(result, new_shield, new_shield_note, alpha_channel, shield_gravity || "north", , shield_note_gravity || "south", shield_geometry)
+      result = composite(result, new_shield, new_shield_note, alpha_channel, shield_gravity || "north", shield_note_gravity || "south", shield_geometry)
     end
 
     def load_shield(shield_string, shield_parameters)
