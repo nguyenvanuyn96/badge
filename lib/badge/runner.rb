@@ -126,7 +126,7 @@ module Badge
         end
         new_shield = MiniMagick::Image.open(new_path)
         
-        ==============shield note
+        ############## shield note ################
         new_note_path = nil
         
         if shield_note
