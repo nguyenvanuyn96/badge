@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'badge/base'
 
 Gem::Specification.new do |spec|
-  spec.name          = "badge-note"
+  spec.name          = "badge"
   spec.version       = Badge::VERSION
   spec.authors       = ["Daniel Griesser"]
   spec.email         = ["daniel.griesser.86@gmail.com"]
