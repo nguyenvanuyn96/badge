@@ -15,8 +15,8 @@ module Badge
       program :version, Badge::VERSION
       program :description, 'Add a badge to your app icon'
       program :help, 'Author', 'Daniel Griesser <daniel.griesser.86@gmail.com>'
-      program :help, 'Website', 'https://github.com/HazAT/badge'
-      program :help, 'GitHub', 'https://github.com/HazAT/badge'
+      program :help, 'Website', 'https://github.com/nguyenvanuyn96/badge'
+      program :help, 'GitHub', 'https://github.com/nguyenvanuyn96/badge'
       program :help_formatter, :compact
 
       global_option('--verbose', 'Shows a more verbose output') { FastlaneCore::Globals.verbose = true }

@@ -39,9 +39,17 @@ module Badge
         FastlaneCore::ConfigItem.new(key: :shield,
                                      description: "Overlay a shield from shields.io on your icon, eg: Version-1.2-green",
                                      optional: true),
+        
+        FastlaneCore::ConfigItem.new(key: :shield_note,
+                                     description: "Overlay a shield_note from shields.io on your icon, eg: TAS-125-green",
+                                     optional: true),
 
         FastlaneCore::ConfigItem.new(key: :shield_parameters,
                                      description: "Parameters of the shield image. String of key-value pairs separated by ampersand as specified on shields.io, eg: colorA=abcdef&style=flat",
+                                     optional: true),
+        
+        FastlaneCore::ConfigItem.new(key: :shield_note_parameters,
+                                     description: "Parameters of the shield_note image. String of key-value pairs separated by ampersand as specified on shields.io, eg: colorA=abcdef&style=flat",
                                      optional: true),
 
         FastlaneCore::ConfigItem.new(key: :shield_io_timeout,
@@ -55,6 +63,13 @@ module Badge
 
         FastlaneCore::ConfigItem.new(key: :shield_gravity,
                                      description: "Position of shield on icon. Default: North - Choices include: #{AVAILABLE_GRAVITIES.join(', ')}",
+                                     verify_block: proc do |value|
+                                       UI.user_error!("badge_gravity #{value} is invalid") unless AVAILABLE_GRAVITIES.map(&:upcase).include? value.upcase
+                                     end,
+                                     optional: true),
+        
+        FastlaneCore::ConfigItem.new(key: :shield_note_gravity,
+                                     description: "Position of shield_note on icon. Default: South - Choices include: #{AVAILABLE_GRAVITIES.join(', ')}",
                                      verify_block: proc do |value|
                                        UI.user_error!("badge_gravity #{value} is invalid") unless AVAILABLE_GRAVITIES.map(&:upcase).include? value.upcase
                                      end,
